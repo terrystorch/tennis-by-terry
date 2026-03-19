@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tennis By Terry</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── PASSWORD GATE ── */
+#password-gate {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+}
+.gate-card {
+  background: #fff; border-radius: 16px;
+  padding: 36px 32px; width: 320px; max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  text-align: center;
+}
+.gate-logo { font-family: var(--mono); font-size: 18px; color: var(--navy); font-weight: 700; margin-bottom: 6px; }
+.gate-logo span { color: #7db8e8; }
+.gate-sub { font-size: 12px; color: var(--text-3); margin-bottom: 24px; }
+.gate-input {
+  width: 100%; padding: 12px 14px; font-size: 16px;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--sans); margin-bottom: 12px;
+  text-align: center; letter-spacing: 0.1em;
+  box-sizing: border-box;
+}
+.gate-input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(28,58,94,0.1); }
+.gate-btn {
+  width: 100%; padding: 12px; background: var(--navy); color: #fff;
+  border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+  font-family: var(--sans); cursor: pointer; transition: background 0.15s;
+}
+.gate-btn:hover { background: var(--navy-light); }
+.gate-error { font-size: 12px; color: var(--red); margin-top: 10px; min-height: 16px; }
+
+:root {
+  --navy: #1C3A5E;
+  --navy-light: #2a5080;
+  --green: #2d7a4f;
+  --green-light: #e8f5ee;
+  --amber: #c47c1a;
+  --amber-light: #fff8e8;
+  --red: #c0392b;
+  --red-light: #fdf0ef;
+  --bg: #f4f2ee;
+  --surface: #ffffff;
+  --border: #ddd9d0;
+  --border-strong: #b5b0a5;
+  --text: #1a1a1a;
+  --text-2: #5a5650;
+  --text-3: #9a958e;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: var(--navy);
+  padding: 0 20px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(28,58,94,0.3);
+}
+.app-title {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+.app-title span { color: #7db8e8; }
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #6ee7b7;
+  box-shadow: 0 0 0 2px rgba(110,231,183,0.3);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  flex: 1;
+  min-width: 80px;
+  padding: 12px 8px 10px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  letter-spacing: 0.02em;
+}
+.nav-tab .tab-icon { font-size: 16px; }
+.nav-tab.active {
+  color: var(--navy);
+  border-bottom-color: var(--navy);
+}
+.nav-tab:hover:not(.active) { color: var(--text-2); background: var(--bg); }
+
+/* ── MAIN CONTENT ── */
+.main { max-width: 720px; margin: 0 auto; padding: 20px 16px 100px; }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-header-icon {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.card-header-title { font-size: 14px; font-weight: 600; color: var(--navy); }
+.card-header-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+.card-body { padding: 18px; }
+
+/* ── FORM ELEMENTS ── */
+.form-grid { display: grid; gap: 14px; }
+.form-grid-2 { grid-template-columns: 1fr 1fr; }
+.form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.field-label .required { color: var(--red); margin-left: 2px; }
+
+input, select, textarea {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(28,58,94,0.1);
+  background: #fff;
+}
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a5650' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+textarea { resize: vertical; min-height: 70px; }
+
+.searchable-wrap { position: relative; }
+.searchable-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: var(--sans);
+  color: var(--text);
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.searchable-input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(28,58,94,0.1); background: #fff; }
+.dropdown-list {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 200;
+}
+.dropdown-list.open { display: block; }
+.dropdown-search {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+}
+.dropdown-search input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  width: 100%;
+}
+.dropdown-search input:focus { outline: none; border-color: var(--navy); }
+.dropdown-option {
+  padding: 9px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.dropdown-option:last-child { border-bottom: none; }
+.dropdown-option:hover { background: var(--bg); }
+.dropdown-option.selected { background: #e8f0fa; color: var(--navy); font-weight: 500; }
+.dropdown-option-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.dropdown-empty { padding: 16px 12px; font-size: 13px; color: var(--text-3); text-align: center; }
+
+/* same-as toggle */
+.same-as-btn {
+  font-size: 11px;
+  color: var(--navy);
+  background: #e8f0fa;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 500;
+  margin-left: auto;
+  display: block;
+  margin-top: -2px;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 20px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  letter-spacing: 0.01em;
+}
+.btn-primary { background: var(--navy); color: #fff; width: 100%; justify-content: center; }
+.btn-primary:hover { background: var(--navy-light); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { background: var(--border-strong); cursor: not-allowed; }
+.btn-success { background: var(--green); color: #fff; width: 100%; justify-content: center; }
+.btn-success:hover { background: #236b43; }
+.btn-sm { font-size: 12px; padding: 7px 12px; }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-2);
+}
+.btn-outline:hover { border-color: var(--navy); color: var(--navy); background: #e8f0fa; }
+
+/* ── SECTION DIVIDER ── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+}
+.section-divider-line { flex: 1; height: 1px; background: var(--border); }
+.section-divider-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* ── RADIO GROUP ── */
+.radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.radio-option {
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--bg);
+  user-select: none;
+}
+.radio-option:hover { border-color: var(--navy); color: var(--navy); }
+.radio-option.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+.radio-option.selected-green { background: var(--green); color: #fff; border-color: var(--green); }
+.radio-option.selected-amber { background: var(--amber); color: #fff; border-color: var(--amber); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: all 0.25s;
+  z-index: 999;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+
+/* ── LOADING ── */
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(244,242,238,0.85);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px;
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; color: var(--text-2); font-family: var(--mono); }
+
+/* ── STATS ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.stat-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.stat-value { font-size: 24px; font-weight: 600; color: var(--navy); font-family: var(--mono); }
+.stat-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+.recent-job {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.recent-job:last-child { border-bottom: none; }
+.recent-job-main { font-size: 13px; font-weight: 500; }
+.recent-job-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.recent-job-pay { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--green); white-space: nowrap; }
+
+/* ── ERROR STATE ── */
+.error-banner {
+  background: var(--red-light);
+  border: 1px solid #f5c6c2;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--red);
+  margin-bottom: 16px;
+  display: none;
+}
+.error-banner.show { display: block; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 500px) {
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr; }
+  .main { padding: 14px 12px 90px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 600px) {
+  .nav-tab { font-size: 13px; padding: 12px 16px 10px; }
+}
+
+/* ── CUSTOMER DASHBOARD ── */
+.dash-period-btns { display: flex; gap: 8px; margin-bottom: 16px; }
+.period-btn {
+  flex: 1; padding: 8px 10px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--text-2); cursor: pointer;
+  font-family: var(--sans); transition: all 0.15s; text-align: center;
+}
+.period-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+.dash-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.dash-stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow);
+}
+.dash-stat-label { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+.dash-stat-value { font-size: 20px; font-weight: 700; color: var(--navy); font-family: var(--mono); line-height: 1.2; }
+.dash-stat-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+.bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; margin: 12px 0 4px; }
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 100%; justify-content: flex-end; }
+.bar { width: 100%; background: var(--navy); border-radius: 3px 3px 0 0; min-height: 2px; transition: height 0.4s ease; opacity: 0.85; }
+.bar:hover { opacity: 1; }
+.bar-label { font-size: 9px; color: var(--text-3); font-family: var(--mono); white-space: nowrap; }
+.bar-count { font-size: 9px; font-family: var(--mono); color: var(--text-2); font-weight: 600; line-height: 1; }
+.string-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.string-row:last-child { border-bottom: none; }
+.string-row-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.string-rank { font-size: 10px; font-family: var(--mono); font-weight: 700; color: var(--text-3); min-width: 14px; }
+.string-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.string-row-bar { display: flex; align-items: center; gap: 8px; padding-left: 22px; }
+.string-bar-bg { flex: 1; background: var(--border); border-radius: 3px; height: 5px; overflow: hidden; }
+.string-bar-fill { background: var(--navy); height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.string-count { font-size: 11px; font-family: var(--mono); color: var(--text-2); white-space: nowrap; min-width: 42px; text-align: right; }
+.job-row { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.job-row:last-child { border-bottom: none; }
+.job-date { color: var(--text-3); font-family: var(--mono); white-space: nowrap; min-width: 72px; }
+.job-detail { flex: 1; min-width: 0; }
+.job-racket { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-string { color: var(--text-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-pay { font-family: var(--mono); color: var(--green); font-weight: 600; white-space: nowrap; }
+
+/* Shareable card */
+.share-card {
+  background: linear-gradient(135deg, var(--navy) 0%, #2a5a8e 100%);
+  border-radius: 16px; padding: 24px; color: #fff; margin-bottom: 16px;
+  box-shadow: 0 8px 32px rgba(28,58,94,0.3);
+}
+.share-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.share-card-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; }
+.share-card-name { font-size: 22px; font-weight: 700; margin-top: 4px; }
+.share-card-brand { font-family: var(--mono); font-size: 11px; opacity: 0.6; margin-top: 2px; }
+.share-card-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.share-card-stat-val { font-size: 22px; font-weight: 700; font-family: var(--mono); }
+.share-card-stat-label { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+.share-card-string { background: rgba(255,255,255,0.12); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
+.share-card-string-label { font-size: 10px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.05em; }
+.share-card-string-val { font-size: 14px; font-weight: 600; margin-top: 3px; }
+.share-card-footer { display: flex; justify-content: space-between; align-items: center; opacity: 0.5; font-size: 10px; font-family: var(--mono); }
+.btn-share { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 12px; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-family: var(--sans); font-weight: 600; transition: all 0.15s; }
+.btn-share:hover { background: rgba(255,255,255,0.25); }
+.dash-empty { padding: 32px 0; text-align: center; color: var(--text-3); font-size: 13px; }
+.scrollable-card-body {
+  height: 260px;
+  overflow-y: auto;
+  padding: 0 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.scrollable-card-body::-webkit-scrollbar { width: 4px; }
+.scrollable-card-body::-webkit-scrollbar-track { background: transparent; }
+.scrollable-card-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── CONFIG BANNER ── */
+.config-banner {
+  background: var(--amber-light);
+  border: 1px solid #f0d090;
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--amber);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.config-banner strong { font-weight: 600; }
+.config-banner code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: rgba(196,124,26,0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Loading data...</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-title">Tennis <span>By Terry</span></div>
+  <div class="status-dot" id="statusDot" title="Connected"></div>
+</header>
+
+<!-- NAV -->
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('log')" id="tab-log">
+    <span class="tab-icon">🎾</span>Log Job
+  </button>
+  <button class="nav-tab" onclick="switchTab('customer')" id="tab-customer">
+    <span class="tab-icon">👤</span>Customer
+  </button>
+  <button class="nav-tab" onclick="switchTab('racket')" id="tab-racket">
+    <span class="tab-icon">🏓</span>Racket
+  </button>
+  <button class="nav-tab" onclick="switchTab('string')" id="tab-string">
+    <span class="tab-icon">〰️</span>String
+  </button>
+  <button class="nav-tab" onclick="switchTab('stats')" id="tab-stats">
+    <span class="tab-icon">📊</span>Stats
+  </button>
+  <button class="nav-tab" onclick="switchTab('customer-dash')" id="tab-customer-dash">
+    <span class="tab-icon">🏅</span>Customers
+  </button>
+</nav>
+
+<main class="main">
+
+<!-- ══════════════ LOG JOB ══════════════ -->
+<div class="panel active" id="panel-log">
+  <div id="logError" class="error-banner"></div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🎾</div>
+      <div>
+        <div class="card-header-title">Log a Stringing Job</div>
+        <div class="card-header-sub" id="todayLabel"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+
+        <!-- Customer -->
+        <div class="field">
+          <label class="field-label">Customer<span class="required">*</span></label>
+          <div class="searchable-wrap">
+            <input type="text" class="searchable-input" id="log_customer_display" placeholder="Select customer..." readonly onclick="toggleDropdown('log_customer')">
+            <input type="hidden" id="log_customer">
+            <div class="dropdown-list" id="dd_log_customer">
+              <div class="dropdown-search"><input type="text" placeholder="Search customers..." oninput="filterDropdown('log_customer', this.value)"></div>
+              <div class="dropdown-options" id="opts_log_customer"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Racket -->
+        <div class="field">
+          <label class="field-label">Racket<span class="required">*</span></label>
+          <div class="searchable-wrap">
+            <input type="text" class="searchable-input" id="log_racket_display" placeholder="Select racket..." readonly onclick="toggleDropdown('log_racket')">
+            <input type="hidden" id="log_racket">
+            <div class="dropdown-list" id="dd_log_racket">
+              <div class="dropdown-search"><input type="text" placeholder="Search rackets..." oninput="filterDropdown('log_racket', this.value)"></div>
+              <div class="dropdown-options" id="opts_log_racket"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- String Method -->
+        <div class="field">
+          <label class="field-label">String Method<span class="required">*</span></label>
+          <div class="radio-group" id="rg_method">
+            <div class="radio-option selected" onclick="selectRadio('method','Classic',this)">Classic</div>
+            <div class="radio-option" onclick="selectRadio('method','Sergetti',this)">Sergetti</div>
+          </div>
+          <input type="hidden" id="log_method" value="Classic">
+        </div>
+
+        <!-- String Source -->
+        <div class="field">
+          <label class="field-label">String Source<span class="required">*</span></label>
+          <div class="radio-group" id="rg_source">
+            <div class="radio-option selected" onclick="selectRadio('source','My Stock',this)">My Stock</div>
+            <div class="radio-option" onclick="selectRadio('source','Customer',this)">Customer</div>
+            <div class="radio-option" onclick="selectRadio('source','Hybrid',this)">Hybrid</div>
+          </div>
+          <input type="hidden" id="log_source" value="My Stock">
+        </div>
+
+        <div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-label">Main String</div><div class="section-divider-line"></div></div>
+
+        <!-- Main String -->
+        <div class="field">
+          <label class="field-label">String<span class="required">*</span></label>
+          <div class="searchable-wrap">
+            <input type="text" class="searchable-input" id="log_main_string_display" placeholder="Select string..." readonly onclick="toggleDropdown('log_main_string')">
+            <input type="hidden" id="log_main_string">
+            <div class="dropdown-list" id="dd_log_main_string">
+              <div class="dropdown-search"><input type="text" placeholder="Search strings..." oninput="filterDropdown('log_main_string', this.value)"></div>
+              <div class="dropdown-options" id="opts_log_main_string"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <label class="field-label">Tension (lbs)<span class="required">*</span></label>
+            <input type="number" id="log_main_tension" placeholder="49" min="30" max="80" step="0.5">
+          </div>
+          <div class="field">
+            <label class="field-label">Color</label>
+            <select id="log_main_color">
+              <option value="">— select —</option>
+              <option>Black</option>
+              <option>White</option>
+              <option>Red</option>
+              <option>Blue</option>
+              <option>Neon Green</option>
+              <option>Natural</option>
+              <option>Silver</option>
+              <option>Grey</option>
+              <option>Yellow</option>
+              <option>Bronze</option>
+              <option>Pink</option>
+              <option>Green</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-label">Cross String</div><div class="section-divider-line"></div></div>
+
+        <!-- Cross String -->
+        <div class="field">
+          <label class="field-label" style="display:flex;align-items:center;">
+            String
+            <button class="same-as-btn" onclick="copyMainToCross()">↑ Same as main</button>
+          </label>
+          <div class="searchable-wrap">
+            <input type="text" class="searchable-input" id="log_cross_string_display" placeholder="Select string..." readonly onclick="toggleDropdown('log_cross_string')">
+            <input type="hidden" id="log_cross_string">
+            <div class="dropdown-list" id="dd_log_cross_string">
+              <div class="dropdown-search"><input type="text" placeholder="Search strings..." oninput="filterDropdown('log_cross_string', this.value)"></div>
+              <div class="dropdown-options" id="opts_log_cross_string"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <label class="field-label">Tension (lbs)</label>
+            <input type="number" id="log_cross_tension" placeholder="49" min="30" max="80" step="0.5">
+          </div>
+          <div class="field">
+            <label class="field-label">Color</label>
+            <select id="log_cross_color">
+              <option value="">— select —</option>
+              <option>White</option>
+              <option>Black</option>
+              <option>Red</option>
+              <option>Blue</option>
+              <option>Neon Green</option>
+              <option>Natural</option>
+              <option>Silver</option>
+              <option>Grey</option>
+              <option>Yellow</option>
+              <option>Bronze</option>
+              <option>Pink</option>
+              <option>Green</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-label">Payment</div><div class="section-divider-line"></div></div>
+
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <label class="field-label">Amount ($)</label>
+            <input type="number" id="log_pay" placeholder="25" min="0" step="1">
+          </div>
+          <div class="field">
+            <label class="field-label">Status<span class="required">*</span></label>
+            <select id="log_status">
+              <option value="Done" selected>Done (unpaid)</option>
+              <option value="Done/Paid">Done / Paid</option>
+              <option value="Personal">Personal</option>
+              <option value="Comp">Comp</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="field">
+          <label class="field-label">Notes</label>
+          <textarea id="log_notes" placeholder="Any special notes..."></textarea>
+        </div>
+
+        <button class="btn btn-primary" onclick="submitJob()" id="submitJobBtn">
+          ✓ &nbsp;Log This Job
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ADD CUSTOMER ══════════════ -->
+<div class="panel" id="panel-customer">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">👤</div>
+      <div>
+        <div class="card-header-title">Add New Customer</div>
+        <div class="card-header-sub">Adds directly to your Customers sheet</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field">
+          <label class="field-label">Full Name<span class="required">*</span></label>
+          <input type="text" id="c_name" placeholder="First Last">
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <label class="field-label">Email</label>
+            <input type="email" id="c_email" placeholder="email@example.com">
+          </div>
+          <div class="field">
+            <label class="field-label">Mobile</label>
+            <input type="tel" id="c_mobile" placeholder="(405) 555-0100">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Notes</label>
+          <textarea id="c_notes" placeholder="Anything useful to remember..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="submitCustomer()">✓ &nbsp;Add Customer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ADD RACKET ══════════════ -->
+<div class="panel" id="panel-racket">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">🏓</div>
+      <div>
+        <div class="card-header-title">Add New Racket</div>
+        <div class="card-header-sub">Adds to Customer Rackets sheet</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field">
+          <label class="field-label">Owner<span class="required">*</span></label>
+          <div class="searchable-wrap">
+            <input type="text" class="searchable-input" id="r_owner_display" placeholder="Select customer..." readonly onclick="toggleDropdown('r_owner')">
+            <input type="hidden" id="r_owner">
+            <div class="dropdown-list" id="dd_r_owner">
+              <div class="dropdown-search"><input type="text" placeholder="Search..." oninput="filterDropdown('r_owner', this.value)"></div>
+              <div class="dropdown-options" id="opts_r_owner"></div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Racket Name<span class="required">*</span></label>
+          <input type="text" id="r_name" placeholder="e.g. Wilson Blade 98 v9 (123)">
+        </div>
+        <div class="form-grid form-grid-3">
+          <div class="field">
+            <label class="field-label">Status</label>
+            <select id="r_stock">
+              <option value="Stock">Stock</option>
+              <option value="Modified">Modified</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Weight (g)</label>
+            <input type="number" id="r_weight" placeholder="325" step="0.1">
+          </div>
+          <div class="field">
+            <label class="field-label">Balance</label>
+            <input type="text" id="r_balance" placeholder="3 PTS">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="submitRacket()">✓ &nbsp;Add Racket</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ADD STRING ══════════════ -->
+<div class="panel" id="panel-string">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">〰️</div>
+      <div>
+        <div class="card-header-title">Add New String</div>
+        <div class="card-header-sub">Adds to your Strings catalog</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field">
+          <label class="field-label">Full Name<span class="required">*</span></label>
+          <input type="text" id="s_name" placeholder="e.g. Tru Pro - Firewire Boost 17g">
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <label class="field-label">Brand<span class="required">*</span></label>
+            <input type="text" id="s_brand" placeholder="e.g. Tru Pro">
+          </div>
+          <div class="field">
+            <label class="field-label">Type</label>
+            <select id="s_type">
+              <option value="">Select type...</option>
+              <option>Shaped Co-Poly</option>
+              <option>Shaped Poly</option>
+              <option>Polyester</option>
+              <option>Soft Poly</option>
+              <option>Co-Poly</option>
+              <option>Multifilament</option>
+              <option>Synthetic Gut</option>
+              <option>Natural Gut</option>
+              <option>Hybrid</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <label class="field-label">Color</label>
+            <select id="s_color">
+              <option value="">— select —</option>
+              <option>Black</option>
+              <option>White</option>
+              <option>Red</option>
+              <option>Blue</option>
+              <option>Neon Green</option>
+              <option>Natural</option>
+              <option>Silver</option>
+              <option>Grey</option>
+              <option>Yellow</option>
+              <option>Bronze</option>
+              <option>Pink</option>
+              <option>Green</option>
+              <option>Black/White</option>
+              <option>Yellow/Black</option>
+              <option>Silver/Gray</option>
+              <option>Burgundy</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Format</label>
+            <select id="s_format">
+              <option value="">—</option>
+              <option value="Reel">Reel</option>
+              <option value="Pack">Pack</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Notes</label>
+          <textarea id="s_notes" placeholder="Any notes about this string..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="submitString()">✓ &nbsp;Add String</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ STATS ══════════════ -->
+<div class="panel" id="panel-stats">
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="stat-month-rev">—</div><div class="stat-sub" id="stat-month-jobs">loading...</div></div>
+    <div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value" id="stat-year-rev">—</div><div class="stat-sub" id="stat-year-jobs">loading...</div></div>
+    <div class="stat-card"><div class="stat-label">All Time</div><div class="stat-value" id="stat-total-rev">—</div><div class="stat-sub" id="stat-total-jobs">loading...</div></div>
+    <div class="stat-card"><div class="stat-label">Customers</div><div class="stat-value" id="stat-customers">—</div><div class="stat-sub">active</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">📋</div>
+      <div><div class="card-header-title">Recent Jobs</div></div>
+    </div>
+    <div class="card-body" id="recentJobs" style="padding: 0 18px;">
+      <div style="padding:16px 0; color:var(--text-3); font-size:13px;">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CUSTOMER DASHBOARD ══════════════ -->
+<div class="panel" id="panel-customer-dash">
+
+  <!-- Customer selector -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-body" style="padding:14px 18px">
+      <div class="field">
+        <label class="field-label">Customer</label>
+        <div class="searchable-wrap">
+          <input type="text" class="searchable-input" id="dash_customer_display" placeholder="Select customer..." readonly onclick="toggleDropdown('dash_customer')">
+          <input type="hidden" id="dash_customer">
+          <div class="dropdown-list" id="dd_dash_customer">
+            <div class="dropdown-search"><input type="text" placeholder="Search customers..." oninput="filterDropdown('dash_customer', this.value)"></div>
+            <div class="dropdown-options" id="opts_dash_customer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dash-content" style="display:none">
+
+    <!-- Period selector -->
+    <div class="dash-period-btns">
+      <button class="period-btn active" onclick="setDashPeriod('ytd',this)">YTD</button>
+      <button class="period-btn" onclick="setDashPeriod('12m',this)">12 Months</button>
+      <button class="period-btn" onclick="setDashPeriod('all',this)">All Time</button>
+    </div>
+
+    <!-- Shareable card -->
+    <div class="share-card" id="shareCard">
+      <div class="share-card-header">
+        <div>
+          <div class="share-card-title">Tennis By Terry</div>
+          <div class="share-card-name" id="sc-name">—</div>
+          <div class="share-card-brand">Customer Profile</div>
+        </div>
+        <button class="btn-share" onclick="shareCard()">↑ Share</button>
+      </div>
+      <div class="share-card-stats">
+        <div><div class="share-card-stat-val" id="sc-jobs">—</div><div class="share-card-stat-label">Jobs</div></div>
+        <div><div class="share-card-stat-val" id="sc-rackets">—</div><div class="share-card-stat-label">Rackets</div></div>
+        <div><div class="share-card-stat-val" id="sc-years">—</div><div class="share-card-stat-label">Years</div></div>
+      </div>
+      <div class="share-card-string">
+        <div class="share-card-string-label">Favorite String</div>
+        <div class="share-card-string-val" id="sc-string">—</div>
+      </div>
+      <div class="share-card-footer">
+        <span id="sc-period">YTD</span>
+        <span>terrystorch.com</span>
+      </div>
+    </div>
+
+    <!-- Key stats -->
+    <div class="dash-stats">
+      <div class="dash-stat">
+        <div class="dash-stat-label">Jobs</div>
+        <div class="dash-stat-value" id="dc-jobs">—</div>
+        <div class="dash-stat-sub" id="dc-jobs-sub"></div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-label">Spent</div>
+        <div class="dash-stat-value" id="dc-spent">—</div>
+        <div class="dash-stat-sub" id="dc-spent-sub"></div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-label">Top String</div>
+        <div class="dash-stat-value" style="font-size:13px;line-height:1.3" id="dc-string">—</div>
+        <div class="dash-stat-sub" id="dc-string-sub"></div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-label">Avg Tension</div>
+        <div class="dash-stat-value" id="dc-tension">—</div>
+        <div class="dash-stat-sub">lbs</div>
+      </div>
+    </div>
+
+    <!-- Jobs by month chart -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <div class="card-header-icon">📈</div>
+        <div><div class="card-header-title">Jobs Over Time</div></div>
+      </div>
+      <div class="card-body">
+        <div class="bar-chart" id="dc-chart"></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-3);font-family:var(--mono)" id="dc-chart-labels"></div>
+      </div>
+    </div>
+
+    <!-- String breakdown -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <div class="card-header-icon">〰️</div>
+        <div><div class="card-header-title">String Usage</div></div>
+      </div>
+      <div class="scrollable-card-body" id="dc-strings" style="padding-top:4px"></div>
+    </div>
+
+    <!-- Racket list -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <div class="card-header-icon">🏓</div>
+        <div><div class="card-header-title" id="dc-rack-title">Rackets</div></div>
+      </div>
+      <div class="scrollable-card-body" id="dc-rackets"></div>
+    </div>
+
+    <!-- Recent jobs -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <div class="card-header-icon">📋</div>
+        <div><div class="card-header-title">Recent Jobs</div></div>
+      </div>
+      <div class="scrollable-card-body" id="dc-jobs-list"></div>
+    </div>
+
+  </div><!-- /dash-content -->
+
+  <div id="dash-empty" style="padding:40px 0;text-align:center;color:var(--text-3);font-size:13px">
+    Select a customer to view their dashboard
+  </div>
+
+</div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════════════
+// CONFIG — update these with your credentials
+// ══════════════════════════════════════════════════
+const SHEET_ID   = '1ZbouDpHmQWnONtnIjo1hRm1ISrNROqecReMBT5WwQSI';
+const API_KEY    = 'AIzaSyAjd0vyvzq6G88uJ0o5SOnymFVIJOtXTMM';
+const BASE_URL   = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcYYrxXDJ-c56UnR_wZfZs-BdKhbuJKU4hVByNsE-HUd9LTujHawSq15u74MNQ5Y6e4Q/exec';
+
+// Sheet tab names — must match exactly
+const TABS = {
+  jobLog:    'Job Log',
+  customers: 'Customers',
+  rackets:   'Customer Rackets',
+  strings:   'Strings'
+};
+
+// ── STATE ──
+let data = { customers: [], rackets: [], strings: [], jobs: [] };
+let dropdownData = {};
+let activeDropdown = null;
+let radios = { method: 'Classic', source: 'My Stock' };
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+  document.addEventListener('click', handleOutsideClick);
+  await loadAllData();
+});
+
+// ── DATA LOADING ──
+async function loadAllData() {
+  showLoading(true);
+  try {
+    const [custResp, rackResp, strResp, jobResp] = await Promise.all([
+      fetchSheet(`${TABS.customers}!A:E`),
+      fetchSheet(`${TABS.rackets}!A:E`),
+      fetchSheet(`${TABS.strings}!A:B`),
+      fetchSheet(`${TABS.jobLog}!A:N`)
+    ]);
+
+    data.customers = parseCustomers(custResp);
+    data.rackets   = parseRackets(rackResp);
+    data.strings   = parseStrings(strResp);
+    data.jobs      = parseJobs(jobResp);
+
+    buildAllDropdowns();
+    updateStats();
+    setConnected(true);
+    // Auto-load Terry Storch on the customer dashboard
+    const terryName = 'Terry Storch';
+    document.getElementById('dash_customer_display').value = terryName;
+    document.getElementById('dash_customer').value = terryName;
+    renderDashboard(terryName);
+  } catch(e) {
+    console.error(e);
+    setConnected(false);
+    showToast('Failed to load data. Check your Sheet sharing settings.', 'error');
+  }
+  showLoading(false);
+}
+
+async function fetchSheet(range) {
+  const url = `${BASE_URL}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`Sheet fetch failed: ${resp.status}`);
+  return resp.json();
+}
+
+function parseCustomers(resp) {
+  const rows = (resp.values || []).slice(1);
+  return rows.filter(r => r[0] && r[0].trim()).map(r => ({
+    name:   r[0]?.trim() || '',
+    email:  r[1]?.trim() || '',
+    mobile: r[2]?.trim() || '',
+    notes:  r[3]?.trim() || ''
+  })).sort((a,b) => a.name.localeCompare(b.name));
+}
+
+function parseRackets(resp) {
+  const rows = (resp.values || []).slice(1);
+  return rows.filter(r => r[0] && r[0].trim() && r[1] && r[1].trim()).map(r => ({
+    name:  r[0]?.trim() || '',
+    owner: r[1]?.trim() || '',
+    date:  r[2]?.trim() || '',
+    stock: r[3]?.trim() || 'Stock'
+  })).sort((a,b) => {
+    // Sort by owner alpha first, then newest date first within each owner
+    const ownerCmp = a.owner.localeCompare(b.owner);
+    if (ownerCmp !== 0) return ownerCmp;
+    const da = parseLocalDate(a.date), db = parseLocalDate(b.date);
+    if (da && db) return db - da;  // newest first
+    return 0;
+  });
+}
+
+function parseStrings(resp) {
+  const rows = (resp.values || []).slice(1);
+  return rows.filter(r => r[0] && r[0].trim()).map(r => ({
+    name:  r[0]?.trim() || '',
+    brand: r[1]?.trim() || ''
+  })).sort((a,b) => a.name.localeCompare(b.name));
+}
+
+function parseJobs(resp) {
+  const allRows = (resp.values || []);
+  const rows = allRows.slice(1); // skip header
+  return rows.filter(r => r[0] && r[1] && r[1].trim() !== 'Customer').map(r => ({
+    date:         r[0]?.trim() || '',
+    customer:     r[1]?.trim() || '',
+    racket:       r[2]?.trim() || '',
+    mainStr:      r[3]?.trim() || '',
+    mainTension:  r[4]?.trim() || '',
+    crossStr:     r[6]?.trim() || '',
+    crossTension: r[7]?.trim() || '',
+    pay:          parseFloat((r[11] || '0').toString().replace(/[$,]/g, '')) || 0,
+    status:       r[12]?.trim() || ''
+  }));
+}
+
+// Parse any date format (M/D/YYYY or YYYY-MM-DD) as local time
+function parseLocalDate(str) {
+  if (!str) return null;
+  // YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const p = str.split('-');
+    return new Date(+p[0], +p[1]-1, +p[2]);
+  }
+  // M/D/YYYY or MM/DD/YYYY
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+    const p = str.split('/');
+    return new Date(+p[2], +p[0]-1, +p[1]);
+  }
+  return new Date(str);
+}
+
+// parseLocalDate defined above in parseJobs block
+
+// ── DROPDOWNS ──
+function buildAllDropdowns() {
+  // Customer lists
+  const custOpts = data.customers.map(c => ({ value: c.name, label: c.name, sub: c.mobile || c.email || '' }));
+  buildDropdown('log_customer', custOpts);
+  buildDropdown('r_owner', custOpts);
+
+  // Dashboard customer — same searchable dropdown as Log Job
+  buildDropdown('dash_customer', custOpts);
+
+  // String lists
+  const strOpts = data.strings.map(s => ({ value: s.name, label: s.name, sub: s.brand }));
+  buildDropdown('log_main_string', strOpts);
+  buildDropdown('log_cross_string', strOpts);
+
+  // Racket list (all)
+  buildRacketDropdown(null);
+}
+
+function buildDropdown(id, options) {
+  dropdownData[id] = options;
+  renderDropdownOptions(id, options);
+}
+
+function buildRacketDropdown(customerFilter) {
+  let rackets = data.rackets;
+  if (customerFilter) rackets = rackets.filter(r => r.owner === customerFilter);
+  const opts = rackets.map(r => ({
+    value: r.name,
+    label: r.name,
+    sub: customerFilter ? '' : r.owner
+  }));
+  dropdownData['log_racket'] = opts;
+  renderDropdownOptions('log_racket', opts);
+}
+
+function renderDropdownOptions(id, options) {
+  const container = document.getElementById(`opts_${id}`);
+  if (!container) return;
+  if (!options.length) {
+    container.innerHTML = '<div class="dropdown-empty">No options found</div>';
+    return;
+  }
+  container.innerHTML = options.map((opt, i) =>
+    `<div class="dropdown-option" data-value="${escHtml(opt.value)}" data-label="${escHtml(opt.label)}" onclick="selectOption('${id}', ${i})">
+      ${escHtml(opt.label)}
+      ${opt.sub ? `<div class="dropdown-option-sub">${escHtml(opt.sub)}</div>` : ''}
+    </div>`
+  ).join('');
+}
+
+function filterDropdown(id, query) {
+  const q = query.toLowerCase();
+  const filtered = (dropdownData[id] || []).filter(o =>
+    o.label.toLowerCase().includes(q) || (o.sub || '').toLowerCase().includes(q)
+  );
+  renderDropdownOptions(id, filtered);
+}
+
+function selectOption(id, index) {
+  const opts = document.querySelectorAll(`#opts_${id} .dropdown-option`);
+  const opt = opts[index];
+  if (!opt) return;
+  const value = opt.dataset.value;
+  const label = opt.dataset.label;
+
+  document.getElementById(id)?.setAttribute('value', value);
+  const hidden = document.getElementById(id);
+  if (hidden) hidden.value = value;
+
+  const display = document.getElementById(`${id}_display`);
+  if (display) display.value = label;
+
+  // Mark selected visually
+  document.querySelectorAll(`#opts_${id} .dropdown-option`).forEach(o => o.classList.remove('selected'));
+  opt.classList.add('selected');
+
+  closeDropdown(id);
+
+
+  // Special: customer dashboard
+  if (id === 'dash_customer') {
+    renderDashboard(value);
+  }
+
+  // Special: filter rackets by customer
+  if (id === 'log_customer') {
+    buildRacketDropdown(value);
+    document.getElementById('log_racket').value = '';
+    document.getElementById('log_racket_display').value = '';
+    // Auto-set source for known customer-string customers
+    const customerStrings = ['John Weaver','David Dustman','Kelly Bratcher'];
+    if (customerStrings.includes(value)) {
+      selectRadioByValue('source', 'Customer');
+    }
+  }
+}
+
+function toggleDropdown(id) {
+  const dd = document.getElementById(`dd_${id}`);
+  if (!dd) return;
+  if (dd.classList.contains('open')) { closeDropdown(id); return; }
+  if (activeDropdown) closeDropdown(activeDropdown);
+  // Always re-render options fresh from dropdownData before opening
+  const search = dd.querySelector('.dropdown-search input');
+  if (search) search.value = '';
+  if (dropdownData[id]) renderDropdownOptions(id, dropdownData[id]);
+  dd.classList.add('open');
+  activeDropdown = id;
+  if (search) setTimeout(() => search.focus(), 50);
+}
+
+function closeDropdown(id) {
+  document.getElementById(`dd_${id}`)?.classList.remove('open');
+  if (activeDropdown === id) activeDropdown = null;
+}
+
+function handleOutsideClick(e) {
+  if (!activeDropdown) return;
+  const dd = document.getElementById(`dd_${activeDropdown}`);
+  const input = document.getElementById(`${activeDropdown}_display`);
+  if (dd && !dd.contains(e.target) && input && !input.contains(e.target)) {
+    closeDropdown(activeDropdown);
+  }
+}
+
+// ── RADIO BUTTONS ──
+function selectRadio(group, value, el) {
+  radios[group] = value;
+  document.getElementById(`log_${group}`).value = value;
+  document.querySelectorAll(`#rg_${group} .radio-option`).forEach(o => {
+    o.classList.remove('selected','selected-green','selected-amber');
+  });
+  const cls = group === 'source' && value === 'My Stock' ? 'selected-green'
+            : group === 'source' && value === 'Hybrid'   ? 'selected-amber'
+            : 'selected';
+  el.classList.add(cls);
+}
+
+function selectRadioByValue(group, value) {
+  const btns = document.querySelectorAll(`#rg_${group} .radio-option`);
+  btns.forEach(btn => {
+    if (btn.textContent.trim() === value) selectRadio(group, value, btn);
+  });
+}
+
+// ── COPY MAIN TO CROSS ──
+function copyMainToCross() {
+  const mainStr = document.getElementById('log_main_string').value;
+  const mainDisp = document.getElementById('log_main_string_display').value;
+  const mainTension = document.getElementById('log_main_tension').value;
+  const mainColor = document.getElementById('log_main_color').value;  // works for select too
+  if (!mainStr) { showToast('Select a main string first', 'error'); return; }
+  document.getElementById('log_cross_string').value = mainStr;
+  document.getElementById('log_cross_string_display').value = mainDisp;
+  document.getElementById('log_cross_tension').value = mainTension;
+  document.getElementById('log_cross_color').value = mainColor;
+  showToast('Copied main string to cross ✓');
+}
+
+// ── SUBMIT JOB ──
+async function submitJob() {
+  const customer = document.getElementById('log_customer').value;
+  const racket   = document.getElementById('log_racket').value;
+  const mainStr  = document.getElementById('log_main_string').value;
+  const mainTen  = document.getElementById('log_main_tension').value;
+  const method   = document.getElementById('log_method').value;
+  const status   = document.getElementById('log_status').value;
+
+  if (!customer || !racket || !mainStr || !mainTen || !method) {
+    showToast('Please fill in all required fields', 'error'); return;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const row = [
+    today,
+    customer,
+    racket,
+    mainStr,
+    mainTen,
+    document.getElementById('log_main_color').value,
+    document.getElementById('log_cross_string').value,
+    document.getElementById('log_cross_tension').value,
+    document.getElementById('log_cross_color').value,
+    method,
+    document.getElementById('log_source').value,
+    document.getElementById('log_pay').value,
+    status,
+    document.getElementById('log_notes').value
+  ];
+
+  await appendRow(TABS.jobLog, row, 'submitJobBtn');
+  data.jobs.unshift({ date: today, customer, racket,
+    mainStr, mainTension: row[4],
+    crossStr: row[6], crossTension: row[7],
+    pay: parseFloat(row[11])||0, status });
+  updateStats();
+  resetJobForm();
+  showToast('Job logged successfully ✓', 'success');
+}
+
+// ── SUBMIT CUSTOMER ──
+async function submitCustomer() {
+  const name = document.getElementById('c_name').value.trim();
+  if (!name) { showToast('Name is required', 'error'); return; }
+  const row = [name, document.getElementById('c_email').value, document.getElementById('c_mobile').value, document.getElementById('c_notes').value];
+  await appendRow(TABS.customers, row);
+  data.customers.push({ name, email: row[1], mobile: row[2], notes: row[3] });
+  data.customers.sort((a,b) => a.name.localeCompare(b.name));
+  const custOpts = data.customers.map(c => ({ value: c.name, label: c.name, sub: c.mobile || c.email || '' }));
+  buildDropdown('log_customer', custOpts);
+  buildDropdown('r_owner', custOpts);
+  buildDropdown('dash_customer', custOpts);
+  document.getElementById('c_name').value = '';
+  document.getElementById('c_email').value = '';
+  document.getElementById('c_mobile').value = '';
+  document.getElementById('c_notes').value = '';
+  showToast(`${name} added ✓`, 'success');
+}
+
+// ── SUBMIT RACKET ──
+async function submitRacket() {
+  const name  = document.getElementById('r_name').value.trim();
+  const owner = document.getElementById('r_owner').value;
+  if (!name || !owner) { showToast('Owner and racket name required', 'error'); return; }
+  const today = new Date().toISOString().split('T')[0];
+  const row = [name, owner, today, document.getElementById('r_stock').value, document.getElementById('r_weight').value, document.getElementById('r_balance').value];
+  await appendRow(TABS.rackets, row);
+  data.rackets.push({ name, owner, date: today, stock: row[3] });
+  data.rackets.sort((a,b) => {
+    const ownerCmp = a.owner.localeCompare(b.owner);
+    if (ownerCmp !== 0) return ownerCmp;
+    const da = parseLocalDate(a.date), db = parseLocalDate(b.date);
+    if (da && db) return db - da;
+    return 0;
+  });
+  buildRacketDropdown(null);
+  document.getElementById('r_name').value = '';
+  document.getElementById('r_weight').value = '';
+  document.getElementById('r_balance').value = '';
+  showToast(`${name} added ✓`, 'success');
+}
+
+// ── SUBMIT STRING ──
+async function submitString() {
+  const name  = document.getElementById('s_name').value.trim();
+  const brand = document.getElementById('s_brand').value.trim();
+  if (!name || !brand) { showToast('Name and brand required', 'error'); return; }
+  const row = [name, brand, '', document.getElementById('s_type').value, document.getElementById('s_color').value, document.getElementById('s_format').value, document.getElementById('s_notes').value];
+  await appendRow(TABS.strings, row);
+  data.strings.push({ name, brand });
+  data.strings.sort((a,b) => a.name.localeCompare(b.name));
+  const strOpts = data.strings.map(s => ({ value: s.name, label: s.name, sub: s.brand }));
+  buildDropdown('log_main_string', strOpts);
+  buildDropdown('log_cross_string', strOpts);
+  document.getElementById('s_name').value = '';
+  document.getElementById('s_brand').value = '';
+  document.getElementById('s_color').value = '';
+  document.getElementById('s_notes').value = '';
+  showToast(`${name} added ✓`, 'success');
+}
+
+// ── APPEND ROW TO SHEET (via Apps Script proxy) ──
+async function appendRow(tab, values, btnId) {
+  const btn = btnId ? document.getElementById(btnId) : null;
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ &nbsp;Saving...'; }
+  try {
+    const payload = JSON.stringify({ tab, row: values });
+    const url = `${SCRIPT_URL}?data=${encodeURIComponent(payload)}`;
+    console.log('Posting to:', url);
+
+    const resp = await fetch(url, { method: 'GET' });
+    const text = await resp.text();
+    console.log('Script response:', text);
+
+    let result;
+    try { result = JSON.parse(text); } catch(e) { result = { success: false, error: text }; }
+
+    if (!result.success) throw new Error(result.error || 'Unknown error from script');
+
+  } catch(e) {
+    console.error('appendRow error:', e);
+    showToast('Save failed: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '✓ &nbsp;Log This Job'; }
+    throw e;
+  }
+  if (btn) { btn.disabled = false; btn.innerHTML = '✓ &nbsp;Log This Job'; }
+}
+
+// ── STATS ──
+function updateStats() {
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear  = now.getFullYear();
+
+  const paid = data.jobs.filter(j => j.status && j.status.includes('Paid'));
+  const monthJobs = paid.filter(j => {
+    const d = parseLocalDate(j.date);
+    return d && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  });
+  const yearJobs = paid.filter(j => {
+    const d = parseLocalDate(j.date);
+    return d && d.getFullYear() === thisYear;
+  });
+
+  const fmt = v => '$' + Math.round(v).toLocaleString();
+  document.getElementById('stat-month-rev').textContent = fmt(monthJobs.reduce((s,j) => s+j.pay,0));
+  document.getElementById('stat-month-jobs').textContent = `${monthJobs.length} jobs`;
+  document.getElementById('stat-year-rev').textContent = fmt(yearJobs.reduce((s,j) => s+j.pay,0));
+  document.getElementById('stat-year-jobs').textContent = `${yearJobs.length} jobs`;
+  document.getElementById('stat-total-rev').textContent = fmt(paid.reduce((s,j) => s+j.pay,0));
+  document.getElementById('stat-total-jobs').textContent = `${paid.length} paid jobs`;
+  document.getElementById('stat-customers').textContent = data.customers.length;
+
+  const recent = data.jobs.slice(0,10);
+  const container = document.getElementById('recentJobs');
+  if (!recent.length) { container.innerHTML = '<div style="padding:16px 0;color:var(--text-3);font-size:13px;">No jobs yet</div>'; return; }
+  container.innerHTML = recent.map(j => {
+    const isSame = j.crossStr && j.mainStr && j.crossStr === j.mainStr;
+    const mainDetail = [j.mainStr, j.mainTension ? j.mainTension+'lbs' : ''].filter(Boolean).join(' ');
+    const crossDetail = isSame
+      ? (j.crossTension && j.crossTension !== j.mainTension ? 'Cross: '+j.crossTension+'lbs' : 'Cross: same')
+      : [j.crossStr, j.crossTension ? j.crossTension+'lbs' : ''].filter(Boolean).join(' ');
+    const strDetail = [mainDetail, crossDetail ? '/ '+crossDetail : ''].filter(Boolean).join(' ');
+    const payLabel = j.status === 'Personal' ? 'Personal' : j.status === 'Comp' ? 'Comp' : j.pay > 0 ? '$'+j.pay : '—';
+    return `<div class="recent-job">
+      <div style="flex:1;min-width:0">
+        <div class="recent-job-main">${escHtml(j.customer)}</div>
+        <div class="recent-job-sub">${escHtml(j.date)} &nbsp;·&nbsp; ${escHtml(j.racket || '—')}</div>
+        ${strDetail ? `<div class="recent-job-sub" style="margin-top:2px">${escHtml(strDetail)}</div>` : ''}
+      </div>
+      <div class="recent-job-pay">${payLabel}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── RESET JOB FORM ──
+function resetJobForm() {
+  document.getElementById('log_customer').value = '';
+  document.getElementById('log_customer_display').value = '';
+  document.getElementById('log_racket').value = '';
+  document.getElementById('log_racket_display').value = '';
+  document.getElementById('log_main_string').value = '';
+  document.getElementById('log_main_string_display').value = '';
+  document.getElementById('log_main_tension').value = '';
+  document.getElementById('log_main_color').value = '';
+  document.getElementById('log_cross_string').value = '';
+  document.getElementById('log_cross_string_display').value = '';
+  document.getElementById('log_cross_tension').value = '';
+  document.getElementById('log_cross_color').value = '';
+  document.getElementById('log_pay').value = '';
+  document.getElementById('log_notes').value = '';
+  document.getElementById('log_status').value = 'Done';
+  selectRadioByValue('method', 'Classic');
+  selectRadioByValue('source', 'My Stock');
+}
+
+// ── TAB SWITCHING ──
+function switchTab(tab) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'stats') updateStats();
+}
+
+// ══════════════════════════════════════════════════
+// CUSTOMER DASHBOARD
+// ══════════════════════════════════════════════════
+let dashPeriod = 'ytd';
+let dashCustomer = null;
+
+function onDashCustomerChange(value) {
+  if (value) renderDashboard(value);
+  else {
+    document.getElementById('dash-content').style.display = 'none';
+    document.getElementById('dash-empty').style.display = 'block';
+  }
+}
+
+function initDashDropdown() {
+  const custOpts = data.customers.map(c => ({ value: c.name, label: c.name, sub: c.mobile || c.email || '' }));
+  buildDropdown('dash_customer', custOpts);
+}
+
+function setDashPeriod(period, el) {
+  dashPeriod = period;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (dashCustomer) renderDashboard(dashCustomer);
+}
+
+function filterJobsByPeriod(jobs, period) {
+  const now = new Date();
+  return jobs.filter(j => {
+    const d = parseLocalDate(j.date);
+    if (!d) return false;
+    if (period === 'ytd') return d.getFullYear() === now.getFullYear();
+    if (period === '12m') {
+      const cutoff = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+      return d >= cutoff;
+    }
+    return true; // all time
+  });
+}
+
+function renderDashboard(customer) {
+  dashCustomer = customer;
+  document.getElementById('dash-content').style.display = 'block';
+  document.getElementById('dash-empty').style.display = 'none';
+
+  const allJobs = data.jobs.filter(j => j.customer === customer);
+  const jobs = filterJobsByPeriod(allJobs, dashPeriod);
+  const paidJobs = jobs.filter(j => j.status && j.status.includes('Paid'));
+  const totalSpent = paidJobs.reduce((s,j) => s+j.pay, 0);
+  const allPaidJobs = allJobs.filter(j => j.status && j.status.includes('Paid'));
+  const allSpent = allPaidJobs.reduce((s,j) => s+j.pay, 0);
+
+  // String usage — each job counted as a "Main / Cross" combo
+  const strCounts = {};
+  jobs.forEach(j => {
+    if (!j.mainStr) return;
+    const cross = j.crossStr && j.crossStr !== j.mainStr ? j.crossStr : null;
+    const key = cross ? `${j.mainStr} / ${cross}` : j.mainStr;
+    strCounts[key] = (strCounts[key]||0)+1;
+  });
+  const topStrings = Object.entries(strCounts).sort((a,b) => b[1]-a[1]);
+  const topString = topStrings[0]?.[0] || '—';
+  const topStringCount = topStrings[0]?.[1] || 0;
+
+  // Average tension
+  const tensions = jobs.map(j => parseFloat(j.mainTension)).filter(t => !isNaN(t) && t > 0);
+  const avgTension = tensions.length ? (tensions.reduce((s,t)=>s+t,0)/tensions.length).toFixed(1) : '—';
+
+  // Rackets — filter by period based on date added, sorted newest first
+  const allCustomerRackets = data.rackets.filter(r => r.owner === customer);
+  const customerRackets = dashPeriod === 'all' ? allCustomerRackets
+    : allCustomerRackets.filter(r => {
+        if (!r.date) return dashPeriod === 'all';
+        const d = parseLocalDate(r.date);
+        if (!d) return false;
+        const now2 = new Date();
+        if (dashPeriod === 'ytd') return d.getFullYear() === now2.getFullYear();
+        if (dashPeriod === '12m') return d >= new Date(now2.getFullYear(), now2.getMonth()-11, 1);
+        return true;
+      });
+
+  // Years active
+  const years = [...new Set(allJobs.map(j => parseLocalDate(j.date)?.getFullYear()).filter(Boolean))];
+
+  // Period label
+  const periodLabel = dashPeriod === 'ytd' ? new Date().getFullYear()+' YTD'
+                    : dashPeriod === '12m' ? 'Last 12 Months' : 'All Time';
+
+  // ── Update share card ──
+  document.getElementById('sc-name').textContent = customer;
+  document.getElementById('sc-jobs').textContent = jobs.length;
+  document.getElementById('sc-rackets').textContent = allCustomerRackets.length;
+  document.getElementById('sc-years').textContent = years.length;
+  document.getElementById('sc-string').textContent = topString !== '—' ? `${topString} (${topStringCount}x)` : '—';
+  document.getElementById('sc-period').textContent = periodLabel;
+
+  // ── Key stats ──
+  document.getElementById('dc-jobs').textContent = jobs.length;
+  document.getElementById('dc-jobs-sub').textContent = `${allJobs.length} all time`;
+  document.getElementById('dc-spent').textContent = '$'+Math.round(totalSpent).toLocaleString();
+  document.getElementById('dc-spent-sub').textContent = '$'+Math.round(allSpent).toLocaleString()+' all time';
+  document.getElementById('dc-string').textContent = topString;
+  document.getElementById('dc-string-sub').textContent = topString !== '—' ? `${topStringCount} jobs` : '';
+  document.getElementById('dc-tension').textContent = avgTension;
+
+  // ── Bar chart (jobs by month) ──
+  const monthCounts = {};
+  jobs.forEach(j => {
+    const d = parseLocalDate(j.date);
+    if (!d) return;
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthCounts[key] = (monthCounts[key]||0)+1;
+  });
+
+  // Build ordered month buckets
+  const now = new Date();
+  const buckets = [];
+  const numMonths = dashPeriod === 'ytd' ? now.getMonth()+1
+                  : dashPeriod === '12m' ? 12 : Math.min(Object.keys(monthCounts).length+1, 24);
+  for (let i = numMonths-1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleString('default',{month:'short'});
+    buckets.push({ key, label, count: monthCounts[key]||0 });
+  }
+  // For all time, use yearly buckets
+  const useYearly = dashPeriod === 'all';
+  const yearCounts = {};
+  if (useYearly) {
+    allJobs.forEach(j => {
+      const d = parseLocalDate(j.date);
+      if (d) yearCounts[d.getFullYear()] = (yearCounts[d.getFullYear()]||0)+1;
+    });
+  }
+  const chartBuckets = useYearly
+    ? Object.entries(yearCounts).sort((a,b)=>a[0]-b[0]).map(([y,c])=>({key:y,label:y,count:c}))
+    : buckets;
+
+  const maxCount = Math.max(...chartBuckets.map(b=>b.count), 1);
+  const chartEl = document.getElementById('dc-chart');
+  const labelsEl = document.getElementById('dc-chart-labels');
+  chartEl.innerHTML = chartBuckets.map(b => `
+    <div class="bar-wrap" title="${b.label}: ${b.count} jobs">
+      ${b.count > 0 ? `<div class="bar-count">${b.count}</div>` : '<div class="bar-count" style="opacity:0">0</div>'}
+      <div class="bar" style="height:${Math.max(4,(b.count/maxCount)*62)}px;${b.count===maxCount?'background:var(--green)':'background:var(--navy)'}"></div>
+    </div>`).join('');
+  labelsEl.innerHTML = chartBuckets.map(b => `<span>${b.label}</span>`).join('');
+
+  // ── String breakdown ──
+  const maxStr = topStrings[0]?.[1] || 1;
+  document.getElementById('dc-strings').innerHTML = topStrings.slice(0,12).map(([name,count], i) => `
+    <div class="string-row">
+      <div class="string-row-top">
+        <span class="string-rank">${i+1}</span>
+        <span class="string-name">${escHtml(name)}</span>
+      </div>
+      <div class="string-row-bar">
+        <div class="string-bar-bg"><div class="string-bar-fill" style="width:${(count/maxStr*100).toFixed(0)}%"></div></div>
+        <div class="string-count">${count} job${count===1?'':'s'}</div>
+      </div>
+    </div>`).join('') || '<div class="dash-empty">No string data for this period</div>';
+
+  // ── Racket list ──
+  document.getElementById('dc-rack-title').textContent = dashPeriod === 'all' ? `Rackets (${allCustomerRackets.length})` : `Rackets added — ${periodLabel} (${customerRackets.length} of ${allCustomerRackets.length})`;
+  document.getElementById('dc-rackets').innerHTML = customerRackets.length
+    ? customerRackets.map(r => `
+      <div class="job-row">
+        <div class="job-date">${r.date ? r.date.slice(0,10) : '—'}</div>
+        <div class="job-detail">
+          <div class="job-racket">${escHtml(r.name)}</div>
+          <div class="job-string">${r.stock||'Stock'}</div>
+        </div>
+      </div>`).join('')
+    : '<div class="dash-empty">No rackets on file</div>';
+
+  // ── Recent jobs — sorted newest first, all jobs in period ──
+  const sortedJobs = [...jobs].sort((a,b) => {
+    const da = parseLocalDate(a.date), db = parseLocalDate(b.date);
+    return (db||0) - (da||0);
+  });
+  document.getElementById('dc-jobs-list').innerHTML = sortedJobs.length
+    ? sortedJobs.map(j => {
+        const cross = j.crossStr && j.crossStr !== j.mainStr ? j.crossStr : null;
+        const strLine = (j.mainStr || '—') + (j.mainTension ? ' @ '+j.mainTension+'lbs' : '')
+          + (cross ? ' / '+cross+(j.crossTension?' @ '+j.crossTension+'lbs':'') : '');
+        return `<div class="job-row">
+          <div class="job-date">${escHtml(j.date||'')}</div>
+          <div class="job-detail">
+            <div class="job-racket">${escHtml(j.racket||'—')}</div>
+            <div class="job-string">${escHtml(strLine)}</div>
+          </div>
+          <div class="job-pay">${j.status==='Personal'?'—':j.status==='Comp'?'Comp':j.pay>0?'$'+j.pay:'—'}</div>
+        </div>`;
+      }).join('')
+    : '<div style="padding:16px 0;color:var(--text-3);font-size:13px;text-align:center">No jobs in this period</div>';
+}
+
+function shareCard() {
+  const name = dashCustomer || 'Customer';
+  const text = `🎾 ${name}'s Tennis By Terry Profile
+
+Jobs: ${document.getElementById('sc-jobs').textContent}
+Favorite String: ${document.getElementById('sc-string').textContent}
+Period: ${document.getElementById('sc-period').textContent}
+
+Strung by Terry Storch — terrystorch.com`;
+  if (navigator.share) {
+    navigator.share({ title: `${name} — Tennis By Terry`, text })
+      .catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard ✓', 'success'));
+  }
+}
+
+// ── UI HELPERS ──
+function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+function setConnected(ok) {
+  const dot = document.getElementById('statusDot');
+  dot.style.background = ok ? '#6ee7b7' : '#f87171';
+  dot.title = ok ? 'Connected to Google Sheets' : 'Disconnected';
+}
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  setTimeout(() => t.className = 'toast', 3000);
+}
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+<!-- PASSWORD GATE -->
+<div id="password-gate">
+  <div class="gate-card">
+    <div class="gate-logo">Tennis <span>By Terry</span></div>
+    <div class="gate-sub">Private access only</div>
+    <input type="password" class="gate-input" id="gate-input" placeholder="Enter password"
+      onkeydown="if(event.key==='Enter') checkPassword()">
+    <button class="gate-btn" onclick="checkPassword()">Enter</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const PASSWORD = 'terry2025';
+  const SESSION_KEY = 'tbt_auth';
+
+  function checkPassword() {
+    const val = document.getElementById('gate-input').value;
+    if (val === PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      document.getElementById('password-gate').style.display = 'none';
+    } else {
+      const err = document.getElementById('gate-error');
+      err.textContent = 'Incorrect password. Try again.';
+      document.getElementById('gate-input').value = '';
+      document.getElementById('gate-input').focus();
+      setTimeout(() => err.textContent = '', 3000);
+    }
+  }
+
+  // Expose to global scope for onclick
+  window.checkPassword = checkPassword;
+
+  // Check if already authenticated this session
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    document.getElementById('password-gate').style.display = 'none';
+  }
+})();
+</script>
+
+</body>
+</html>
