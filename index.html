@@ -730,8 +730,10 @@ textarea { resize: vertical; min-height: 72px; }
 </div>
 
 <script>
+const SHEET_ID='1ZbouDpHmQWnONtnIjo1hRm1ISrNROqecReMBT5WwQSI';
+const API_KEY='AIzaSyBdEkLn1har04CmTatfFN-iVjfsIHmJMoQ';
+const BASE_URL=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbzcYYrxXDJ-c56UnR_wZfZs-BdKhbuJKU4hVByNsE-HUd9LTujHawSq15u74MNQ5Y6e4Q/exec';
-const TOKEN='tbt-k9x2-2026-secureme';
 const TABS={jobLog:'Job Log',customers:'Customers',rackets:'Customer Rackets',strings:'Strings'};
 let data={customers:[],rackets:[],strings:[],jobs:[]};
 let dropdownData={},activeDropdown=null;
@@ -763,11 +765,11 @@ async function loadAllData(){
   }catch(e){console.error(e);setConnected(false);showToast('Failed to load data','error');}
   showLoading(false);
 }
-async function fetchSheet(range){const payload=JSON.stringify({action:'read',range,token:TOKEN});const r=await fetch(`${SCRIPT_URL}?data=${encodeURIComponent(payload)}`);if(!r.ok)throw new Error(r.status);const result=await r.json();if(result.error)throw new Error(result.error);return result;}
-function parseCustomers(r){return(r.values||[]).slice(1).filter(r=>r[0]?.trim()).map(r=>({name:r[0]?.trim()||'',email:r[1]?.trim()||'',mobile:r[2]?.trim()||'',notes:r[3]?.trim()||''})).sort((a,b)=>a.name.localeCompare(b.name));}
-function parseRackets(r){return(r.values||[]).slice(1).filter(r=>r[0]?.trim()&&r[1]?.trim()).map(r=>({name:r[0]?.trim()||'',owner:r[1]?.trim()||'',date:r[2]?.trim()||'',stock:r[3]?.trim()||'Stock'})).sort((a,b)=>{const o=a.owner.localeCompare(b.owner);if(o)return o;const da=pld(a.date),db=pld(b.date);return da&&db?db-da:0;});}
-function parseStrings(r){return(r.values||[]).slice(1).filter(r=>r[0]?.trim()).map(r=>({name:r[0]?.trim()||'',brand:r[1]?.trim()||''})).sort((a,b)=>a.name.localeCompare(b.name));}
-function parseJobs(r){return(r.values||[]).slice(1).filter(r=>r[0]&&r[1]&&r[1].trim()!=='Customer').map(r=>({date:r[0]?.trim()||'',customer:r[1]?.trim()||'',racket:r[2]?.trim()||'',mainStr:r[3]?.trim()||'',mainTension:r[4]?.trim()||'',mainColor:r[5]?.trim()||'',crossStr:r[6]?.trim()||'',crossTension:r[7]?.trim()||'',crossColor:r[8]?.trim()||'',method:r[9]?.trim()||'',pay:parseFloat((r[11]||'0').toString().replace(/[$,]/g,''))||0,status:r[12]?.trim()||''}));}
+async function fetchSheet(range){const r=await fetch(`${BASE_URL}/values/${encodeURIComponent(range)}?key=${API_KEY}`);if(!r.ok)throw new Error(r.status);return r.json();}
+function s(v){return v===null||v===undefined?'':String(v).trim();}function parseCustomers(r){return(r.values||[]).slice(1).filter(r=>s(r[0])).map(r=>({name:s(r[0]),email:s(r[1]),mobile:s(r[2]),notes:s(r[3])})).sort((a,b)=>a.name.localeCompare(b.name));}
+function parseRackets(r){return(r.values||[]).slice(1).filter(r=>s(r[0])&&s(r[1])).map(r=>({name:s(r[0]),owner:s(r[1]),date:s(r[2]),stock:s(r[3])||'Stock'})).sort((a,b)=>{const o=a.owner.localeCompare(b.owner);if(o)return o;const da=pld(a.date),db=pld(b.date);return da&&db?db-da:0;});}
+function parseStrings(r){return(r.values||[]).slice(1).filter(r=>s(r[0])).map(r=>({name:s(r[0]),brand:s(r[1])})).sort((a,b)=>a.name.localeCompare(b.name));}
+function parseJobs(r){return(r.values||[]).slice(1).filter(r=>s(r[0])&&s(r[1])&&s(r[1])!=='Customer').map(r=>({date:s(r[0]),customer:s(r[1]),racket:s(r[2]),mainStr:s(r[3]),mainTension:s(r[4]),mainColor:s(r[5]),crossStr:s(r[6]),crossTension:s(r[7]),crossColor:s(r[8]),method:s(r[9]),pay:parseFloat(s(r[11]).replace(/[$,]/g,''))||0,status:s(r[12])}));}
 function pld(s){if(!s)return null;if(/^\d{4}-\d{2}-\d{2}$/.test(s)){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){const p=s.split('/');return new Date(+p[2],+p[0]-1,+p[1]);}return new Date(s);}
 
 function buildAllDropdowns(){
@@ -872,7 +874,7 @@ async function submitString(){
 async function appendRow(tab,values,btnId){
   const btn=btnId?document.getElementById(btnId):null;if(btn){btn.disabled=true;btn.textContent='Saving…';}
   try{
-    const payload=JSON.stringify({action:'write',tab,row:values,token:TOKEN});const url=`${SCRIPT_URL}?data=${encodeURIComponent(payload)}`;
+    const payload=JSON.stringify({tab,row:values});const url=`${SCRIPT_URL}?data=${encodeURIComponent(payload)}`;
     const resp=await fetch(url,{method:'GET'});const text=await resp.text();
     let result;try{result=JSON.parse(text);}catch(e){result={success:false,error:text};}
     if(!result.success)throw new Error(result.error||'Unknown error');
